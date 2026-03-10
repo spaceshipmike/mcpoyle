@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import fcntl
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".config" / "mcpoyle"
 CONFIG_PATH = CONFIG_DIR / "config.json"
+LOCK_PATH = CONFIG_DIR / "config.lock"
 
 
 @dataclass
@@ -251,4 +253,10 @@ def load_config() -> McpoyleConfig:
 
 def save_config(config: McpoyleConfig) -> None:
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    CONFIG_PATH.write_text(json.dumps(config.to_dict(), indent=2) + "\n")
+    # Use a file lock to prevent concurrent writes from clobbering each other
+    with open(LOCK_PATH, "w") as lock_f:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            CONFIG_PATH.write_text(json.dumps(config.to_dict(), indent=2) + "\n")
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
