@@ -9,6 +9,7 @@ from pathlib import Path
 from mcpoyle.clients import (
     CLIENTS,
     ProjectImport,
+    ensure_project_enabled_plugins_key,
     get_enabled_plugins,
     get_extra_marketplaces,
     get_managed_servers,
@@ -18,11 +19,13 @@ from mcpoyle.clients import (
     project_servers_key,
     read_cc_settings,
     read_client_config,
+    read_project_settings,
     server_to_client_entry,
     set_enabled_plugins,
     set_extra_marketplaces,
     write_cc_settings,
     write_client_config,
+    write_project_settings,
     write_servers_nested,
 )
 from mcpoyle.config import Marketplace, McpoyleConfig, Server
@@ -148,7 +151,48 @@ def _sync_project(
         write_servers_nested(path, key_path, new_entries)
         proj.last_synced = datetime.now(timezone.utc).isoformat()
 
+    # Sync project-level plugins to .claude/settings.local.json
+    plugins = config.resolve_plugins(client_id, group_name=proj.group)
+    if plugins:
+        plugin_actions = _sync_project_plugins(config, plugins, abs_path, dry_run)
+        diff_actions.extend(plugin_actions)
+
     return diff_actions
+
+
+def _sync_project_plugins(
+    config: McpoyleConfig,
+    plugins: list,
+    project_path: str,
+    dry_run: bool,
+) -> list[str]:
+    """Sync plugins to a project's .claude/settings.local.json."""
+    actions = []
+    new_enabled = {p.qualified_name: p.enabled for p in plugins}
+
+    local_settings = read_project_settings(project_path, local=True)
+    current_enabled = get_enabled_plugins(local_settings)
+
+    has_changes = False
+    for qname, state in new_enabled.items():
+        if current_enabled.get(qname) != state:
+            symbol = "+" if state else "~"
+            actions.append(f"  {symbol} plugin {qname} → {'enabled' if state else 'disabled'}")
+            has_changes = True
+
+    if has_changes:
+        label = f"project plugins ({project_path})"
+        if dry_run:
+            actions.insert(0, f"{label}: would sync to .claude/settings.local.json")
+        else:
+            # Workaround for CC bug #27247: ensure enabledPlugins key exists in settings.json
+            ensure_project_enabled_plugins_key(project_path)
+            current_enabled.update(new_enabled)
+            set_enabled_plugins(local_settings, current_enabled)
+            write_project_settings(project_path, local_settings, local=True)
+            actions.append(f"{label}: synced to .claude/settings.local.json")
+
+    return actions
 
 
 def _sync_cc_plugins(

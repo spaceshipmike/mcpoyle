@@ -305,6 +305,39 @@ def set_extra_marketplaces(settings: dict, marketplaces: dict) -> None:
     settings["extraKnownMarketplaces"] = marketplaces
 
 
+def read_project_settings(project_path: str, local: bool = False) -> dict:
+    """Read a project's .claude/settings.json or .claude/settings.local.json."""
+    p = Path(project_path).expanduser().resolve()
+    fname = "settings.local.json" if local else "settings.json"
+    path = p / ".claude" / fname
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text())
+
+
+def write_project_settings(project_path: str, settings: dict, local: bool = False) -> None:
+    """Write a project's .claude/settings[.local].json, backing up first."""
+    p = Path(project_path).expanduser().resolve()
+    fname = "settings.local.json" if local else "settings.json"
+    path = p / ".claude" / fname
+    if path.exists():
+        shutil.copy2(path, path.with_suffix(".json.bak"))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(settings, indent=2) + "\n")
+
+
+def ensure_project_enabled_plugins_key(project_path: str) -> None:
+    """Ensure enabledPlugins key exists in project settings.json (workaround for CC bug #27247).
+
+    If enabledPlugins is absent from .claude/settings.json, CC silently ignores
+    enabledPlugins in .claude/settings.local.json. Adding an empty key unblocks it.
+    """
+    settings = read_project_settings(project_path, local=False)
+    if "enabledPlugins" not in settings:
+        settings["enabledPlugins"] = {}
+        write_project_settings(project_path, settings, local=False)
+
+
 def _get_nested(d: dict, key: str):
     """Get a value from a dict using a dot-separated key path."""
     return _get_nested_list(d, key.split("."))
