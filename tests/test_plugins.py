@@ -168,6 +168,50 @@ def test_enabled_plugins_helpers():
     assert get_enabled_plugins(settings) == {"clangd-lsp@official": True}
 
 
+def test_path_rule_matching():
+    from mcpoyle.config import PathRule
+    rule = PathRule(path="/Users/mike/Projects", group="assistant")
+    assert rule.matches("/Users/mike/Projects/some-thing")
+    assert rule.matches("/Users/mike/Projects/deep/nested/path")
+    assert not rule.matches("/Users/mike/Code/something")
+    assert not rule.matches("/Users/mike/ProjectsExtra/foo")
+
+
+def test_config_match_rule_longest_prefix():
+    from mcpoyle.config import PathRule
+    cfg = McpoyleConfig(
+        rules=[
+            PathRule(path="/Users/mike/Projects", group="general"),
+            PathRule(path="/Users/mike/Projects/work", group="work"),
+        ]
+    )
+    # Should match the more specific rule
+    rule = cfg.match_rule("/Users/mike/Projects/work/client-app")
+    assert rule is not None
+    assert rule.group == "work"
+
+    # Should match the general rule
+    rule = cfg.match_rule("/Users/mike/Projects/personal-blog")
+    assert rule is not None
+    assert rule.group == "general"
+
+    # Should match nothing
+    rule = cfg.match_rule("/Users/mike/Code/foo")
+    assert rule is None
+
+
+def test_path_rule_round_trip():
+    from mcpoyle.config import PathRule
+    cfg = McpoyleConfig(
+        rules=[PathRule(path="~/Projects", group="assistant")]
+    )
+    d = cfg.to_dict()
+    cfg2 = McpoyleConfig.from_dict(d)
+    assert len(cfg2.rules) == 1
+    assert cfg2.rules[0].path == "~/Projects"
+    assert cfg2.rules[0].group == "assistant"
+
+
 def test_extra_marketplaces_helpers():
     settings = {}
     assert get_extra_marketplaces(settings) == {}

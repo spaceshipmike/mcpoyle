@@ -95,6 +95,27 @@ class Group:
 
 
 @dataclass
+class PathRule:
+    path: str  # prefix to match (unexpanded, ~ allowed)
+    group: str
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PathRule:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    @property
+    def resolved_path(self) -> str:
+        return str(Path(self.path).expanduser().resolve())
+
+    def matches(self, project_path: str) -> bool:
+        resolved = str(Path(project_path).expanduser().resolve())
+        prefix = self.resolved_path
+        if not prefix.endswith("/"):
+            prefix += "/"
+        return resolved.startswith(prefix)
+
+
+@dataclass
 class ProjectAssignment:
     path: str
     group: str | None = None
@@ -141,6 +162,7 @@ class McpoyleConfig:
     clients: list[ClientAssignment] = field(default_factory=list)
     plugins: list[Plugin] = field(default_factory=list)
     marketplaces: list[Marketplace] = field(default_factory=list)
+    rules: list[PathRule] = field(default_factory=list)
     settings: Settings = field(default_factory=Settings)
 
     @classmethod
@@ -151,6 +173,7 @@ class McpoyleConfig:
             clients=[ClientAssignment.from_dict(c) for c in d.get("clients", [])],
             plugins=[Plugin.from_dict(p) for p in d.get("plugins", [])],
             marketplaces=[Marketplace.from_dict(m) for m in d.get("marketplaces", [])],
+            rules=[PathRule.from_dict(r) for r in d.get("rules", [])],
             settings=Settings.from_dict(d.get("settings", {})),
         )
 
@@ -180,6 +203,15 @@ class McpoyleConfig:
 
     def get_marketplace(self, name: str) -> Marketplace | None:
         return next((m for m in self.marketplaces if m.name == name), None)
+
+    def match_rule(self, project_path: str) -> PathRule | None:
+        """Find the first path rule matching a project path (longest prefix wins)."""
+        resolved = str(Path(project_path).expanduser().resolve())
+        matches = [r for r in self.rules if r.matches(resolved)]
+        if not matches:
+            return None
+        # Longest prefix = most specific match
+        return max(matches, key=lambda r: len(r.resolved_path))
 
     def resolve_servers(self, client_id: str, group_name: str | None = None) -> list[Server]:
         """Get the servers a client should receive."""

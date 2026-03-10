@@ -460,6 +460,78 @@ def unassign(ctx: click.Context, client: str, project_path: str | None) -> None:
         click.echo(f"Unassigned {CLIENTS[client].name} — will receive all enabled servers.")
 
 
+# ── Rules commands ───────────────────────────────────────────────
+
+
+@cli.group("rules")
+def rules_group() -> None:
+    """Manage path-based group rules."""
+
+
+@rules_group.command("list")
+@click.pass_context
+def rules_list(ctx: click.Context) -> None:
+    """List all path rules."""
+    cfg: McpoyleConfig = ctx.obj["config"]
+    if not cfg.rules:
+        click.echo("No path rules configured.")
+        return
+    for r in cfg.rules:
+        click.echo(f"  {r.path} → {r.group}")
+
+
+@rules_group.command("add")
+@click.argument("path")
+@click.argument("group")
+@click.pass_context
+def rules_add(ctx: click.Context, path: str, group: str) -> None:
+    """Add a path rule: projects under PATH get GROUP.
+
+    Example: mcpoyle rules add ~/Projects/ assistant
+    """
+    from pathlib import Path as _Path
+    from mcpoyle.config import PathRule
+
+    cfg: McpoyleConfig = ctx.obj["config"]
+
+    if not cfg.get_group(group):
+        click.echo(f"Group '{group}' not found.", err=True)
+        raise SystemExit(1)
+
+    abs_path = str(_Path(path).expanduser().resolve())
+
+    # Check for duplicate
+    for r in cfg.rules:
+        if r.resolved_path == abs_path:
+            click.echo(f"Rule for '{abs_path}' already exists (→ {r.group}).", err=True)
+            raise SystemExit(1)
+
+    cfg.rules.append(PathRule(path=path, group=group))
+    _save(ctx)
+    click.echo(f"Added rule: {path} → {group}")
+    click.echo("Projects under this path will get this group on next sync.")
+
+
+@rules_group.command("remove")
+@click.argument("path")
+@click.pass_context
+def rules_remove(ctx: click.Context, path: str) -> None:
+    """Remove a path rule."""
+    from pathlib import Path as _Path
+
+    cfg: McpoyleConfig = ctx.obj["config"]
+    abs_path = str(_Path(path).expanduser().resolve())
+
+    rule = next((r for r in cfg.rules if r.resolved_path == abs_path), None)
+    if not rule:
+        click.echo(f"No rule for '{path}'.", err=True)
+        raise SystemExit(1)
+
+    cfg.rules.remove(rule)
+    _save(ctx)
+    click.echo(f"Removed rule for '{path}'.")
+
+
 # ── Scope command ────────────────────────────────────────────────
 
 
@@ -1033,6 +1105,14 @@ ASSIGNMENTS
   mcp unassign <client>                 Remove assignment (reverts to all servers).
   mcp unassign <client>                 Remove a project-level assignment.
         --project <path>                (--project is Claude Code only)
+
+RULES
+  mcp rules list                        List all path rules.
+  mcp rules add <path> <group>          Add a rule: projects under <path> get <group>.
+  mcp rules remove <path>               Remove a path rule.
+
+  Rules auto-assign groups to Claude Code projects based on their path.
+  Explicit assignments override rules. Most specific prefix wins.
 
 SCOPE
   mcp scope <name> --project <path>     Move a server or plugin from global to

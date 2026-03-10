@@ -138,6 +138,35 @@ mcpoyle unassign claude-code --project ~/Code/myapp
 
 ---
 
+## Rules
+
+### `mcpoyle rules list`
+
+List all path rules.
+
+### `mcpoyle rules add <path> <group>`
+
+Add a path rule. Projects under the given path automatically receive the specified group during sync. Explicit project assignments always override rules.
+
+When multiple rules match, the most specific (longest) prefix wins.
+
+```
+mcpoyle rules add ~/Projects/ assistant
+mcpoyle rules add ~/Code/ dev-tools
+```
+
+On the next `mcpoyle sync claude-code`, any projects in `~/.claude.json` under `~/Projects/` that don't have an explicit assignment will be auto-assigned the `assistant` group and synced.
+
+### `mcpoyle rules remove <path>`
+
+Remove a path rule. Existing project assignments created by the rule are not removed.
+
+```
+mcpoyle rules remove ~/Projects/
+```
+
+---
+
 ## Scope
 
 ### `mcpoyle scope <name> --project <path>`

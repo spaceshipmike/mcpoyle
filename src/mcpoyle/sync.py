@@ -28,7 +28,7 @@ from mcpoyle.clients import (
     write_project_settings,
     write_servers_nested,
 )
-from mcpoyle.config import Marketplace, McpoyleConfig, Server
+from mcpoyle.config import ClientAssignment, Marketplace, McpoyleConfig, ProjectAssignment, Server
 
 
 def _diff_actions(label: str, new_entries: dict, managed: dict, dry_run: bool) -> tuple[list[str], bool]:
@@ -106,10 +106,19 @@ def sync_client(
     # Also sync any project-level assignments for Claude Code
     if client_id == "claude-code":
         assignment = config.get_client(client_id)
-        if assignment:
-            for proj in assignment.projects:
-                proj_actions = _sync_project(config, client_id, proj.path, dry_run)
-                actions.extend(proj_actions)
+        if not assignment:
+            assignment = ClientAssignment(id=client_id)
+            config.clients.append(assignment)
+
+        # Sync explicitly assigned projects
+        for proj in assignment.projects:
+            proj_actions = _sync_project(config, client_id, proj.path, dry_run)
+            actions.extend(proj_actions)
+
+        # Apply path rules to projects discovered in ~/.claude.json
+        if config.rules:
+            rule_actions = _apply_path_rules(config, assignment, paths, dry_run)
+            actions.extend(rule_actions)
 
         # Sync plugins and marketplaces to Claude Code settings
         plugin_actions = _sync_cc_plugins(config, client_id, dry_run)
@@ -191,6 +200,44 @@ def _sync_project_plugins(
             set_enabled_plugins(local_settings, current_enabled)
             write_project_settings(project_path, local_settings, local=True)
             actions.append(f"{label}: synced to .claude/settings.local.json")
+
+    return actions
+
+
+def _apply_path_rules(
+    config: McpoyleConfig,
+    assignment: ClientAssignment,
+    cc_config_paths: list[Path],
+    dry_run: bool,
+) -> list[str]:
+    """Discover projects in ~/.claude.json that match path rules but have no explicit assignment."""
+    actions = []
+    explicitly_assigned = {p.path for p in assignment.projects}
+
+    # Scan ~/.claude.json for project paths
+    for config_path in cc_config_paths:
+        cc_data = read_client_config(config_path)
+        projects = cc_data.get("projects", {})
+        if not isinstance(projects, dict):
+            continue
+
+        for proj_path in projects:
+            if proj_path in explicitly_assigned:
+                continue
+
+            rule = config.match_rule(proj_path)
+            if not rule:
+                continue
+
+            # Auto-assign this project via the rule
+            proj = ProjectAssignment(path=proj_path, group=rule.group)
+            assignment.projects.append(proj)
+            explicitly_assigned.add(proj_path)
+
+            proj_actions = _sync_project(config, "claude-code", proj_path, dry_run)
+            if proj_actions:
+                proj_actions.insert(0, f"  (matched rule: {rule.path} → {rule.group})")
+            actions.extend(proj_actions)
 
     return actions
 
