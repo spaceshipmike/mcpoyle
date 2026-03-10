@@ -1,4 +1,4 @@
-# mcpoyle
+# MCPoyle
 
 A CLI tool for centrally managing MCP server configurations across multiple AI clients.
 
@@ -6,7 +6,7 @@ A CLI tool for centrally managing MCP server configurations across multiple AI c
 
 Each AI client maintains its own MCP server config in its own file. Adding a new server means editing configs for Claude Desktop, Claude Code, Cursor, VS Code, and others — each with slightly different formats and paths. There's no way to give different clients different sets of servers.
 
-## What mcpoyle Does
+## What MCPoyle Does
 
 - **One registry** — define each MCP server once in a central config
 - **Groups** — organize servers into named sets (e.g., "dev-tools", "work", "personal")
@@ -99,10 +99,10 @@ mcp import <client>                     Import existing servers
 
 ## How Sync Works
 
-1. mcpoyle reads the client's config file
+1. MCPoyle reads the client's config file
 2. Removes entries tagged with `__mcpoyle` (previously managed)
 3. Writes the current resolved server set (all tagged with `__mcpoyle`)
-4. Servers not managed by mcpoyle are never touched
+4. Servers not managed by MCPoyle are never touched
 
 Sync is **idempotent** — running it twice produces the same result. Config files are **backed up** (`.bak`) before each write.
 
@@ -110,7 +110,7 @@ Sync is **idempotent** — running it twice produces the same result. Config fil
 
 Central config lives at `~/.config/mcpoyle/config.json`, created automatically on first use.
 
-Secrets in env values should use 1Password references (`op://Dev/...`) — mcpoyle stores the references, not plaintext.
+Secrets in env values should use 1Password references (`op://Dev/...`) — MCPoyle stores the references, not plaintext.
 
 ## License
 
