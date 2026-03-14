@@ -34,7 +34,7 @@ def _make_test_config() -> McpoyleConfig:
 @pytest.mark.asyncio
 @patch("mcpoyle.tui.load_config")
 async def test_tui_launches_and_shows_dashboard(mock_load):
-    """Verify the TUI app mounts and populates all 5 tables."""
+    """Verify the TUI app mounts and populates all tables across tabs."""
     mock_load.return_value = _make_test_config()
 
     from mcpoyle.tui import McpoyleApp
@@ -43,21 +43,24 @@ async def test_tui_launches_and_shows_dashboard(mock_load):
     async with McpoyleApp().run_test() as pilot:
         app = pilot.app
 
-        # All 5 tables should exist and have data
+        # Tab 1 (default): Servers & Plugins
         servers_table = app.query_one("#servers-table", DataTable)
         assert servers_table.row_count == 2
 
         plugins_table = app.query_one("#plugins-table", DataTable)
         assert plugins_table.row_count == 1
 
-        mkts_table = app.query_one("#marketplaces-table", DataTable)
-        assert mkts_table.row_count == 1
-
+        # Tab 2: Groups
         groups_table = app.query_one("#groups-table", DataTable)
         assert groups_table.row_count == 1
 
+        # Tab 3: Clients
         clients_table = app.query_one("#clients-table", DataTable)
-        assert clients_table.row_count > 0  # At least some clients detected
+        assert clients_table.row_count > 0
+
+        # Tab 4: Marketplaces
+        mkts_table = app.query_one("#marketplaces-table", DataTable)
+        assert mkts_table.row_count == 1
 
 
 @pytest.mark.asyncio

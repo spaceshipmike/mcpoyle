@@ -1,13 +1,13 @@
 ---
-version: 0.6.0
+version: 0.8.0
 status: active
-last_updated: 2026-03-12
+last_updated: 2026-03-13
 synopsis:
   short: "Central manager for MCP servers and Claude Code plugins across AI clients"
   medium: "mcpoyle is a CLI and TUI tool that centrally manages MCP server configurations and Claude Code plugins across multiple AI clients. It provides a single registry, group-based organization, and automatic sync to each client's native config format."
   readme: "mcpoyle eliminates the pain of maintaining MCP server configurations across Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, Zed, and JetBrains. Define your servers once, organize them into groups, assign groups to clients or projects, and sync. For Claude Code, mcpoyle extends to full plugin lifecycle management — install, uninstall, enable, disable — and marketplace registration. The CLI surface is optimized for scripting and AI agents; the TUI dashboard provides a human-friendly overview with keyboard-driven navigation and sync previews."
   tech-stack: [Python 3.12+, click, Textual, hatch, uv, JSON config]
-  patterns: [additive sync, central registry, group-based assignment, presentation-agnostic core, operations layer]
+  patterns: [additive sync, central registry, group-based assignment, path-rule auto-assignment, presentation-agnostic core, operations layer]
   goals: [single source of truth for MCP configs, cross-client sync, plugin lifecycle management, CLI + TUI surfaces]
 ---
 
@@ -70,10 +70,10 @@ mcpoyle registry search <query>           # search Smithery registry
 mcpoyle registry add <id>                 # install from registry
 
 mcpoyle plugins list                      # list all plugins (installed + enabled state)
-mcpoyle plugins install <name> [--marketplace <name>] [--scope user]
+mcpoyle plugins install <name> [--marketplace <name>]
 mcpoyle plugins uninstall <name>
-mcpoyle plugins enable <name> [--scope user]
-mcpoyle plugins disable <name> [--scope user]
+mcpoyle plugins enable <name>
+mcpoyle plugins disable <name>
 mcpoyle plugins show <name>               # show plugin details
 mcpoyle plugins import                    # import existing plugins into mcpoyle registry
 
@@ -85,6 +85,15 @@ mcpoyle marketplaces show <name>          # show marketplace details + plugins
 
 mcpoyle groups add-plugin <group> <plugin>
 mcpoyle groups remove-plugin <group> <plugin>
+
+mcpoyle rules list                        # list all path rules
+mcpoyle rules add <path> <group>          # auto-assign group to projects under path
+mcpoyle rules remove <path>
+
+mcpoyle scope <name> --project <path>     # move server/plugin to project-only
+
+mcpoyle tui                               # open interactive TUI dashboard
+mcpoyle reference                         # show full command reference
 ```
 
 ## TUI Surface
@@ -93,20 +102,19 @@ mcpoyle groups remove-plugin <group> <plugin>
 
 ### Dashboard
 
-The dashboard displays five panels, each showing a summary of one domain:
+The dashboard uses a tabbed interface with four tabs. Each tab takes the full screen, keeping the layout clean and readable. Tabs are navigated with number keys (1-4) or by clicking.
 
-- **Servers panel** — lists all servers with their enabled/disabled state and group membership. Disabled servers are visually dimmed.
-- **Plugins panel** — lists installed plugins with their enabled state and marketplace source.
-- **Marketplaces panel** — lists registered marketplaces with source type (GitHub/local).
-- **Groups panel** — lists groups with member counts (servers and plugins).
-- **Clients panel** — lists detected clients with sync status: "synced" (config matches registry), "stale" (registry changed since last sync), or "never" (not yet synced).
+- **Servers & Plugins** (tab 1, default) — servers table on top, plugins table below. Servers show enabled/disabled state, command, and group membership. Plugins show enabled state, marketplace, and managed status.
+- **Groups** (tab 2) — lists groups with member counts (servers and plugins) and description.
+- **Clients** (tab 3) — lists detected clients with install status, assigned group, and last sync timestamp (or "never" if not yet synced).
+- **Marketplaces** (tab 4) — lists registered marketplaces with source type (GitHub/local) and detail.
 
 ### Navigation
 
-- Arrow keys navigate within the active panel (up/down through items)
-- Tab switches focus between panels
-- Enter selects or drills into the highlighted item (e.g., entering a group shows its members)
-- Esc returns to the previous view or closes a modal
+- 1/2/3/4 switches between tabs
+- Arrow keys navigate within the active table (up/down through items)
+- Tab switches focus between tables when a tab has multiple (e.g., servers and plugins)
+- Esc closes a modal
 - Standard keyboard conventions throughout — no vim bindings as default
 
 ### Actions
@@ -114,7 +122,7 @@ The dashboard displays five panels, each showing a summary of one domain:
 The TUI supports toggle and action operations on the selected item:
 
 - **Enable/disable** servers and plugins (toggles the enabled state in the registry)
-- **Assign/unassign** servers to groups
+- **Assign** servers or plugins to groups (via command palette)
 - **Trigger sync** for an individual client or all clients
 - **Remove** servers or plugins from the registry
 
@@ -178,6 +186,9 @@ Central config at `~/.config/mcpoyle/config.json`:
         }
       }
     }
+  ],
+  "rules": [
+    {"path": "~/Code/work", "group": "work"}
   ]
 }
 ```
@@ -192,6 +203,37 @@ Claude Code supports per-project MCP server configs stored in `~/.claude.json` u
 - **Project assignment** (`mcpoyle assign claude-code dev-tools --project ~/Code/myapp`) — writes to `projects./Users/mike/Code/myapp.mcpServers` in `~/.claude.json`
 
 Project assignments are tracked in the central config under `clients[].projects`. On sync, both the global and all project-level assignments are synced. The `--project` flag is only valid for `claude-code`.
+
+## Path Rules
+
+Path rules auto-assign groups to Claude Code projects based on their folder location. Instead of manually assigning a group to each project, you define a rule like "all projects under `~/Code/work/` get the `work` group" — and mcpoyle applies it automatically on sync.
+
+### Rule Definition
+
+```json
+{
+  "rules": [
+    {"path": "~/Code/work", "group": "work"},
+    {"path": "~/Code/personal", "group": "personal"}
+  ]
+}
+```
+
+The `path` field is a prefix — any project whose absolute path starts with the rule's resolved path matches. Tilde (`~`) expansion is applied before matching. The most specific (longest) matching prefix wins when multiple rules overlap.
+
+### How Rules Apply
+
+During `mcpoyle sync claude-code`, mcpoyle scans all project paths in `~/.claude.json` → `projects`. For each project that has no explicit assignment (via `mcpoyle assign`), mcpoyle checks the rules list for a matching prefix. If a rule matches, the project is automatically assigned to that rule's group and synced.
+
+Explicit assignments always override rules. A project assigned via `mcpoyle assign claude-code dev-tools --project ~/Code/work/myapp` keeps `dev-tools` even if a rule says `~/Code/work` → `work`.
+
+### CLI
+
+```
+mcpoyle rules list                        # list all path rules
+mcpoyle rules add <path> <group>          # add a rule (group must exist)
+mcpoyle rules remove <path>               # remove a rule
+```
 
 ## Plugins (Claude Code)
 
@@ -251,14 +293,15 @@ Claude Code supports three plugin scopes that determine which settings file rece
 
 ### Install / Uninstall
 
-`mcpoyle plugins install <name>` installs a plugin from a known marketplace. mcpoyle:
+`mcpoyle plugins install <name>` registers a plugin from a known marketplace. mcpoyle:
 
-1. Resolves the plugin from the marketplace's `marketplace.json`
-2. Fetches plugin source (git clone for GitHub, copy for local) to `~/.claude/plugins/cache/`
-3. Sets `"name@marketplace": true` in `~/.claude/settings.json` → `enabledPlugins`
-4. Adds entry to mcpoyle's central config
+1. Resolves the marketplace (explicit `--marketplace`, single marketplace auto-select, or defaults to `claude-plugins-official`)
+2. Sets `"name@marketplace": true` in `~/.claude/settings.json` → `enabledPlugins`
+3. Adds entry to mcpoyle's central config
 
-`mcpoyle plugins uninstall <name>` reverses this: removes from `enabledPlugins`, cleans up cached files, removes from mcpoyle's central config.
+Claude Code handles fetching plugin source to `~/.claude/plugins/cache/` automatically when it sees the `enabledPlugins` entry.
+
+`mcpoyle plugins uninstall <name>` reverses this: removes from `enabledPlugins`, removes from groups, removes from mcpoyle's central config.
 
 ### Enable / Disable
 
@@ -396,6 +439,8 @@ Core logic is organized into four layers: data model, operations, sync engine, a
 
 ## Changelog
 
+- **0.8.0** — Shift TUI from 5-panel simultaneous layout to 4-tab interface: Servers & Plugins (combined), Groups, Clients, Marketplaces
+- **0.7.0** — Document path rules feature; fix CLI Surface to include rules, scope, tui, reference commands; correct plugin install/uninstall flow description
 - **0.6.0** — Add TUI dashboard (Textual) via `mcp tui` subcommand; extract operations layer from CLI for shared business logic
 - **0.5.0** — Add `scope` command for moving servers/plugins from global to project-only. Project-level plugin sync writes to `.claude/settings.local.json` with auto-workaround for CC bug #27247. Auto-creates groups when transitioning from "all servers" mode.
 - **0.4.0** — Correct plugin spec against official docs: use `enabledPlugins` as source of truth (not `installed_plugins.json`), fix marketplace source format (`"source"` not `"type"`, `"directory"` not `"local"`), drop auto-update toggle (UI-only), scope to user-only for v1 due to CC scope bugs, add reserved marketplace name validation

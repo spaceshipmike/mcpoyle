@@ -6,21 +6,23 @@ mcpoyle — CLI tool for centrally managing MCP server configurations and Claude
 
 ## Tech Stack
 
-- Python 3.12+, click, hatch
+- Python 3.12+, click, Textual, hatch
 - Entry point: `mcp` (via `mcpoyle.cli:cli`)
 - Config: `~/.config/mcpoyle/config.json`
 - Tests: pytest (`tests/`)
 
 ## Architecture
 
-Core logic is presentation-agnostic — all operations return structured data, never print directly.
+Core logic is organized into four layers: data model, operations, sync engine, and presentation. The CLI and TUI are both thin presentation layers over a shared operations + sync + config core.
 
 | Module | Role |
 |--------|------|
 | `config.py` | Data model (Server, Plugin, Marketplace, Group, etc.) and JSON I/O |
 | `clients.py` | Client definitions, detection, config file read/write, CC settings helpers |
+| `operations.py` | Business logic for all mutations (install, uninstall, enable, disable, assign, scope, etc.) — shared by CLI and TUI |
 | `sync.py` | Sync engine — resolves servers/plugins per client, writes configs |
 | `cli.py` | Thin click wrapper that formats and displays |
+| `tui.py` | Textual TUI dashboard — visual presentation layer |
 
 ## Rules
 

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.command import Hit, Hits, Provider
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import (
     DataTable,
@@ -14,6 +13,8 @@ from textual.widgets import (
     Header,
     Label,
     Static,
+    TabbedContent,
+    TabPane,
 )
 
 from mcpoyle import operations as ops
@@ -111,28 +112,20 @@ class McpoyleApp(App):
     COMMANDS = {McpoyleCommands}
 
     CSS = """
-    #dashboard {
+    TabbedContent {
         height: 1fr;
-    }
-    #left-col {
-        width: 1fr;
-    }
-    #right-col {
-        width: 1fr;
-    }
-    .panel {
-        height: 1fr;
-        border: solid $primary-background;
-        margin: 0 0 0 0;
-    }
-    .panel-title {
-        dock: top;
-        padding: 0 1;
-        background: $primary;
-        color: $text;
-        text-style: bold;
     }
     DataTable {
+        height: 1fr;
+    }
+    .section-label {
+        padding: 0 1;
+        background: $primary-background;
+        color: $text;
+        text-style: bold;
+        margin: 0 0 0 0;
+    }
+    #servers-section, #plugins-section {
         height: 1fr;
     }
     #sync-preview-modal {
@@ -159,6 +152,10 @@ class McpoyleApp(App):
 
     BINDINGS = [
         Binding("ctrl+p", "command_palette", "Command Palette"),
+        Binding("1", "tab_1", "Servers & Plugins", show=False),
+        Binding("2", "tab_2", "Groups", show=False),
+        Binding("3", "tab_3", "Clients", show=False),
+        Binding("4", "tab_4", "Marketplaces", show=False),
         Binding("s", "sync_all", "Sync All"),
         Binding("r", "refresh", "Refresh"),
         Binding("e", "toggle_enable", "Enable/Disable"),
@@ -169,28 +166,23 @@ class McpoyleApp(App):
     def __init__(self) -> None:
         super().__init__()
         self.cfg = load_config()
-        self._active_panel: str = "servers"
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Horizontal(id="dashboard"):
-            with Vertical(id="left-col"):
-                with Vertical(classes="panel", id="servers-panel"):
-                    yield Label("Servers", classes="panel-title")
+        with TabbedContent("Servers & Plugins", "Groups", "Clients", "Marketplaces"):
+            with TabPane("Servers & Plugins", id="tab-servers-plugins"):
+                with Vertical(id="servers-section"):
+                    yield Label("Servers", classes="section-label")
                     yield DataTable(id="servers-table")
-                with Vertical(classes="panel", id="plugins-panel"):
-                    yield Label("Plugins", classes="panel-title")
+                with Vertical(id="plugins-section"):
+                    yield Label("Plugins", classes="section-label")
                     yield DataTable(id="plugins-table")
-                with Vertical(classes="panel", id="marketplaces-panel"):
-                    yield Label("Marketplaces", classes="panel-title")
-                    yield DataTable(id="marketplaces-table")
-            with Vertical(id="right-col"):
-                with Vertical(classes="panel", id="groups-panel"):
-                    yield Label("Groups", classes="panel-title")
-                    yield DataTable(id="groups-table")
-                with Vertical(classes="panel", id="clients-panel"):
-                    yield Label("Clients", classes="panel-title")
-                    yield DataTable(id="clients-table")
+            with TabPane("Groups", id="tab-groups"):
+                yield DataTable(id="groups-table")
+            with TabPane("Clients", id="tab-clients"):
+                yield DataTable(id="clients-table")
+            with TabPane("Marketplaces", id="tab-marketplaces"):
+                yield DataTable(id="marketplaces-table")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -206,10 +198,6 @@ class McpoyleApp(App):
         plugins.add_columns("Name", "Status", "Marketplace", "Managed")
         plugins.cursor_type = "row"
 
-        mkts = self.query_one("#marketplaces-table", DataTable)
-        mkts.add_columns("Name", "Source", "Detail")
-        mkts.cursor_type = "row"
-
         groups = self.query_one("#groups-table", DataTable)
         groups.add_columns("Name", "Servers", "Plugins", "Description")
         groups.cursor_type = "row"
@@ -218,12 +206,16 @@ class McpoyleApp(App):
         clients.add_columns("Name", "Installed", "Group", "Last Sync")
         clients.cursor_type = "row"
 
+        mkts = self.query_one("#marketplaces-table", DataTable)
+        mkts.add_columns("Name", "Source", "Detail")
+        mkts.cursor_type = "row"
+
     def _populate_all(self) -> None:
         self._populate_servers()
         self._populate_plugins()
-        self._populate_marketplaces()
         self._populate_groups()
         self._populate_clients()
+        self._populate_marketplaces()
 
     def _populate_servers(self) -> None:
         table = self.query_one("#servers-table", DataTable)
@@ -241,13 +233,6 @@ class McpoyleApp(App):
             status = "ON" if p.enabled else "OFF"
             managed = "yes" if p.managed else "no"
             table.add_row(p.name, status, p.marketplace, managed, key=p.name)
-
-    def _populate_marketplaces(self) -> None:
-        table = self.query_one("#marketplaces-table", DataTable)
-        table.clear()
-        for m in self.cfg.marketplaces:
-            detail = m.source.repo or m.source.path or m.source.url or ""
-            table.add_row(m.name, m.source.source, detail, key=m.name)
 
     def _populate_groups(self) -> None:
         table = self.query_one("#groups-table", DataTable)
@@ -274,6 +259,13 @@ class McpoyleApp(App):
                 if assignment.last_synced:
                     last_sync = assignment.last_synced[:19]
             table.add_row(cdef.name, installed, group, last_sync, key=cid)
+
+    def _populate_marketplaces(self) -> None:
+        table = self.query_one("#marketplaces-table", DataTable)
+        table.clear()
+        for m in self.cfg.marketplaces:
+            detail = m.source.repo or m.source.path or m.source.url or ""
+            table.add_row(m.name, m.source.source, detail, key=m.name)
 
     def _reload_config(self) -> None:
         self.cfg = load_config()
@@ -311,6 +303,24 @@ class McpoyleApp(App):
         if "clients" in table_id:
             return "client"
         return None
+
+    # ── Tab switching ───────────────────────────────────────────
+
+    def _switch_tab(self, tab_id: str) -> None:
+        tabbed = self.query_one(TabbedContent)
+        tabbed.active = tab_id
+
+    def action_tab_1(self) -> None:
+        self._switch_tab("tab-servers-plugins")
+
+    def action_tab_2(self) -> None:
+        self._switch_tab("tab-groups")
+
+    def action_tab_3(self) -> None:
+        self._switch_tab("tab-clients")
+
+    def action_tab_4(self) -> None:
+        self._switch_tab("tab-marketplaces")
 
     # ── Actions ─────────────────────────────────────────────────
 
@@ -381,7 +391,6 @@ class McpoyleApp(App):
 
     def _do_sync_preview(self, client_id: str | None = None) -> None:
         """Show sync preview then execute if confirmed."""
-        # Gather dry-run output
         if client_id:
             actions = sync_client(self.cfg, client_id, dry_run=True)
             preview_lines = actions

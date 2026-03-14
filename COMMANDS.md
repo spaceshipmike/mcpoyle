@@ -257,12 +257,13 @@ mcpoyle plugins install my-plugin --marketplace homelab
 ```
 
 Writes to Claude Code:
-- Fetches plugin source to `~/.claude/plugins/cache/`
 - Sets `"name@marketplace": true` in `~/.claude/settings.json` → `enabledPlugins`
+
+Claude Code handles fetching plugin source to `~/.claude/plugins/cache/` automatically.
 
 ### `mcpoyle plugins uninstall <name>`
 
-Remove a plugin. Removes from `enabledPlugins` and cleans up cached files.
+Remove a plugin. Removes from `enabledPlugins`, removes from groups, and removes from mcpoyle's central config.
 
 ### `mcpoyle plugins enable <name>`
 
@@ -274,7 +275,7 @@ Disable a plugin. Sets `enabledPlugins` entry to `false` without removing cached
 
 ### `mcpoyle plugins show <name>`
 
-Show full plugin details: marketplace, enabled state, cache path, and group membership.
+Show full plugin details: marketplace, enabled state, managed status, qualified name, and group membership.
 
 ### `mcpoyle plugins import`
 
