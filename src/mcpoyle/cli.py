@@ -438,26 +438,112 @@ def import_cmd(ctx: click.Context, client: str) -> None:
                 click.echo(f"  + {s.name}")
 
 
-# ── Registry commands (stub) ────────────────────────────────────
+# ── Registry commands ────────────────────────────────────────────
 
 
 @cli.group("registry")
 def registry_group() -> None:
-    """Search and install from the Smithery registry."""
+    """Search and install MCP servers from public registries."""
 
 
 @registry_group.command("search")
 @click.argument("query")
 def registry_search(query: str) -> None:
-    """Search the Smithery registry."""
-    click.echo("Registry search is not yet implemented.")
+    """Search MCP server registries."""
+    from mcpoyle.registry import search_registries
+
+    results = search_registries(query)
+    if not results:
+        click.echo("No servers found.")
+        return
+
+    for s in results:
+        transport = click.style(s.transport, fg="cyan")
+        source = click.style(s.source, fg="yellow")
+        click.echo(f"  {s.name} [{transport}] ({source})")
+        if s.description:
+            click.echo(f"    {s.description}")
+
+
+@registry_group.command("show")
+@click.argument("server_id")
+def registry_show(server_id: str) -> None:
+    """Show server details from registry."""
+    from mcpoyle.registry import get_server
+
+    detail = get_server(server_id)
+    if not detail:
+        click.echo(f"Server '{server_id}' not found.", err=True)
+        raise SystemExit(1)
+
+    click.echo(f"Name:        {detail.name}")
+    click.echo(f"Source:      {detail.source}")
+    click.echo(f"Transport:   {detail.transport}")
+    if detail.description:
+        click.echo(f"Description: {detail.description}")
+    if detail.homepage:
+        click.echo(f"Homepage:    {detail.homepage}")
+    if detail.registry_type:
+        click.echo(f"Package:     {detail.registry_type} — {detail.package_identifier}")
+    if detail.env_vars:
+        click.echo("Env vars:")
+        for ev in detail.env_vars:
+            req = " (required)" if ev.required else ""
+            desc = f" — {ev.description}" if ev.description else ""
+            click.echo(f"  {ev.name}{req}{desc}")
+    if detail.tools:
+        click.echo(f"Tools:       {', '.join(detail.tools[:10])}")
+        if len(detail.tools) > 10:
+            click.echo(f"             ... and {len(detail.tools) - 10} more")
 
 
 @registry_group.command("add")
-@click.argument("id_")
-def registry_add(id_: str) -> None:
-    """Install a server from the Smithery registry."""
-    click.echo("Registry install is not yet implemented.")
+@click.argument("server_id")
+@click.option("--env", "env_pairs", multiple=True, help="Environment variables (KEY=VAL)")
+@click.pass_context
+def registry_add(ctx: click.Context, server_id: str, env_pairs: tuple[str, ...]) -> None:
+    """Install a server from a registry."""
+    from mcpoyle.registry import get_server, translate_to_server_config
+
+    detail = get_server(server_id)
+    if not detail:
+        click.echo(f"Server '{server_id}' not found in any registry.", err=True)
+        raise SystemExit(1)
+
+    if not detail.package_identifier and not detail.registry_type:
+        click.echo(f"Server '{server_id}' has no installable package info.", err=True)
+        raise SystemExit(1)
+
+    config = translate_to_server_config(detail)
+
+    # Parse env pairs from flags
+    env = {}
+    for pair in env_pairs:
+        if "=" not in pair:
+            click.echo(f"Invalid env format: {pair} (expected KEY=VAL)", err=True)
+            raise SystemExit(1)
+        k, v = pair.split("=", 1)
+        env[k] = v
+
+    # Prompt for required env vars not provided via flags
+    for ev in detail.env_vars:
+        if ev.name not in env and ev.required:
+            desc = f" ({ev.description})" if ev.description else ""
+            val = click.prompt(f"  {ev.name}{desc}")
+            env[ev.name] = val
+
+    config["env"] = env
+
+    # Add via operations layer
+    result = ops.add_server(
+        ctx.obj["config"],
+        name=config["name"],
+        command=config["command"],
+        args=config["args"],
+        env=config["env"],
+        transport=config["transport"],
+    )
+    _handle(ctx, result)
 
 
 # ── Marketplace commands ─────────────────────────────────────────
@@ -724,9 +810,12 @@ MARKETPLACES (Claude Code)
 TUI
   mcp tui                               Open the interactive TUI dashboard.
 
-REGISTRY (coming soon)
-  mcp registry search <query>           Search the Smithery registry.
-  mcp registry add <id>                 Install from the registry.
+REGISTRY
+  mcp registry search <query>           Search MCP server registries (Official + Glama).
+  mcp registry show <id>                Show server details from registry.
+  mcp registry add <id>                 Install a server from the registry. Options:
+        [--env KEY=VAL ...]               Environment variables (repeatable).
+                                          Prompts for required vars not provided.
 
 CONFIG
   Central config: ~/.config/mcpoyle/config.json (created automatically).

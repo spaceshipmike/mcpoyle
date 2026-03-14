@@ -1,4 +1,5 @@
 {
-  "currentCommand": "review",
-  "completedSteps": ["state-owner-scan"]
+  "currentCommand": "execute",
+  "completedSteps": ["state-owner-scan", "executor-plan"],
+  "workflowStep": "executor-build"
 }

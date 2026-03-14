@@ -1,14 +1,14 @@
 ---
-version: 0.8.0
+version: 0.9.0
 status: active
 last_updated: 2026-03-13
 synopsis:
   short: "Central manager for MCP servers and Claude Code plugins across AI clients"
   medium: "mcpoyle is a CLI and TUI tool that centrally manages MCP server configurations and Claude Code plugins across multiple AI clients. It provides a single registry, group-based organization, and automatic sync to each client's native config format."
   readme: "mcpoyle eliminates the pain of maintaining MCP server configurations across Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, Zed, and JetBrains. Define your servers once, organize them into groups, assign groups to clients or projects, and sync. For Claude Code, mcpoyle extends to full plugin lifecycle management — install, uninstall, enable, disable — and marketplace registration. The CLI surface is optimized for scripting and AI agents; the TUI dashboard provides a human-friendly overview with keyboard-driven navigation and sync previews."
-  tech-stack: [Python 3.12+, click, Textual, hatch, uv, JSON config]
-  patterns: [additive sync, central registry, group-based assignment, path-rule auto-assignment, presentation-agnostic core, operations layer]
-  goals: [single source of truth for MCP configs, cross-client sync, plugin lifecycle management, CLI + TUI surfaces]
+  tech-stack: [Python 3.12+, click, Textual, httpx, hatch, uv, JSON config]
+  patterns: [additive sync, central registry, group-based assignment, path-rule auto-assignment, multi-registry search, presentation-agnostic core, operations layer]
+  goals: [single source of truth for MCP configs, cross-client sync, plugin lifecycle management, registry discovery + install, CLI + TUI surfaces]
 ---
 
 # mcpoyle
@@ -66,8 +66,9 @@ mcpoyle sync [<client>]                   # sync all or one client
 mcpoyle sync claude-code --project ~/Code/myapp          # sync a specific project
 mcpoyle import <client>                   # import servers from a client's config
 
-mcpoyle registry search <query>           # search Smithery registry
-mcpoyle registry add <id>                 # install from registry
+mcpoyle registry search <query>           # search MCP server registries
+mcpoyle registry show <id>               # show server details from registry
+mcpoyle registry add <id>                 # install server from registry
 
 mcpoyle plugins list                      # list all plugins (installed + enabled state)
 mcpoyle plugins install <name> [--marketplace <name>]
@@ -379,6 +380,48 @@ When a group contains both servers and plugins, `mcpoyle sync` handles both:
 
 `mcpoyle sync --dry-run` shows both server and plugin changes.
 
+## Registry
+
+mcpoyle integrates with MCP server registries to discover, browse, and install servers without manually constructing configs. Two registries are supported out of the box, both with public APIs requiring no authentication:
+
+- **Official MCP Registry** (`registry.modelcontextprotocol.io`) — the canonical upstream source (~10K servers). Returns structured package metadata with `registryType`, transport, and environment variable specifications.
+- **Glama** (`glama.ai`) — the largest enriched directory (~19K servers, 70+ categories). Returns environment variable JSON schemas and hosting attributes. Good for non-dev tools (finance, marketing, productivity, etc.).
+
+### Search
+
+`mcpoyle registry search <query>` searches both registries, deduplicates results by name, and displays a merged list. Results show:
+
+- Server name and description
+- Source registry
+- Transport type (stdio/HTTP)
+- Popularity indicator (use count or download count when available)
+
+### Show
+
+`mcpoyle registry show <id>` fetches full details for a server from its source registry:
+
+- Description and homepage
+- Transport type and connection details
+- Required environment variables (with descriptions when available)
+- Available tools (when the registry provides them)
+
+### Install
+
+`mcpoyle registry add <id>` resolves the server config from the registry and adds it to mcpoyle's central config. The translation from registry metadata to mcpoyle's server format follows these rules:
+
+| Registry Type | Command | Args |
+|--------------|---------|------|
+| `npm` | `npx` | `["-y", "<identifier>"]` |
+| `pypi` | `uvx` | `["<identifier>"]` |
+
+If the server requires environment variables, mcpoyle prompts for each one (or accepts them via `--env KEY=VAL` flags). Values containing `op://` references are stored as-is.
+
+The server is added to the central config but not synced — run `mcpoyle sync` to push it to clients.
+
+### Future Registry Support
+
+Additional registries (Smithery, PulseMCP) can be added as opt-in sources when the user provides API keys. The registry architecture is designed to support multiple backends with a unified search interface.
+
 ## Supported Clients
 
 | Client | Config Path | Format | Plugins |
@@ -399,6 +442,7 @@ When a group contains both servers and plugins, `mcpoyle sync` handles both:
 - **Language:** Python 3.12+
 - **CLI framework:** click
 - **TUI framework:** Textual
+- **HTTP client:** httpx (for registry API calls)
 - **Distribution:** uv / PyPI (`uvx mcpoyle`)
 - **Config:** JSON (serde-style, no external DB)
 - **Secrets:** 1Password CLI (`op://`) references in env values — mcpoyle stores the references, not plaintext
@@ -436,9 +480,12 @@ Core logic is organized into four layers: data model, operations, sync engine, a
 ## Future
 
 - **Multi-group assignments** — Allow projects and clients to be assigned multiple groups, with resolved servers/plugins being the union. Currently limited to one group each.
+- **Additional registries** — Smithery and PulseMCP as opt-in sources with API key configuration.
+- **SkillsGate integration** — SkillsGate (`skillsgate.ai`) is an open marketplace for AI agent skills (coding workflows, prompt libraries). Different from MCP servers but complementary — could integrate as a skills discovery source alongside Claude Code plugins.
 
 ## Changelog
 
+- **0.9.0** — Integrate MCP server registries (Official MCP Registry + Glama). Search, show, and install servers from public registries with automatic config translation (npm→npx, pypi→uvx). Add httpx dependency. Note SkillsGate as future integration.
 - **0.8.0** — Shift TUI from 5-panel simultaneous layout to 4-tab interface: Servers & Plugins (combined), Groups, Clients, Marketplaces
 - **0.7.0** — Document path rules feature; fix CLI Surface to include rules, scope, tui, reference commands; correct plugin install/uninstall flow description
 - **0.6.0** — Add TUI dashboard (Textual) via `mcp tui` subcommand; extract operations layer from CLI for shared business logic
