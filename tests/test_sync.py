@@ -97,8 +97,8 @@ def test_write_and_read_round_trip(tmp_path):
     assert servers["s1"][MCPOYLE_MARKER] is True
     assert "s2" in servers
 
-    # Backup created
-    assert path.with_suffix(".json.bak").exists()
+    # Backup created (one-time .mcpoyle-backup)
+    assert path.with_name(path.name + ".mcpoyle-backup").exists()
 
 
 def test_nested_project_servers(tmp_path):

@@ -1,5 +1,5 @@
 ---
-version: 0.9.0
+version: 0.10.0
 status: active
 last_updated: 2026-03-13
 synopsis:
@@ -328,8 +328,8 @@ mcpoyle tracks marketplaces in its central config:
       "source": {"source": "github", "repo": "anthropics/claude-plugins-official"}
     },
     {
-      "name": "homelab",
-      "source": {"source": "directory", "path": "/Users/mike/Code/homelab-marketplace"}
+      "name": "my-plugins",
+      "source": {"source": "directory", "path": "/Users/mike/Code/my-plugins"}
     }
   ]
 }
@@ -340,10 +340,10 @@ When writing to Claude Code's `settings.json` → `extraKnownMarketplaces`, mcpo
 ```json
 {
   "extraKnownMarketplaces": {
-    "homelab": {
+    "my-plugins": {
       "source": {
         "source": "directory",
-        "path": "/Users/mike/Code/homelab-marketplace"
+        "path": "/Users/mike/Code/my-plugins"
       }
     }
   }
@@ -404,6 +404,7 @@ mcpoyle integrates with MCP server registries to discover, browse, and install s
 - Transport type and connection details
 - Required environment variables (with descriptions when available)
 - Available tools (when the registry provides them)
+- Estimated token cost — approximate context window tokens for the server's tool definitions (name + description + schema, ~4 chars/token heuristic)
 
 ### Install
 
@@ -420,7 +421,7 @@ The server is added to the central config but not synced — run `mcpoyle sync` 
 
 ### Future Registry Support
 
-Additional registries (Smithery, PulseMCP) can be added as opt-in sources when the user provides API keys. The registry architecture is designed to support multiple backends with a unified search interface.
+Additional registries (Smithery, PulseMCP, MCP Scoreboard) can be added as opt-in sources when the user provides API keys. MCP Scoreboard provides quality grades across six dimensions (schema, protocol, reliability, docs, security, usability). The registry architecture is designed to support multiple backends with a unified search interface.
 
 ## Supported Clients
 
@@ -436,6 +437,15 @@ Additional registries (Smithery, PulseMCP) can be added as opt-in sources when t
 | Windsurf | `~/.windsurf/mcp.json` | JSON | No |
 | Zed | `~/.config/zed/settings.json` | JSON | No |
 | JetBrains | `~/.config/JetBrains/*/mcp.json` | JSON | No |
+| Gemini CLI | `~/.gemini/settings.json` | JSON | No |
+| Codex CLI | `~/.codex/config.toml` | TOML | No |
+| Copilot CLI | `~/.copilot/mcp-config.json` | JSON | No |
+| Copilot JetBrains | `~/.config/github-copilot/mcp.json` | JSON | No |
+| Amazon Q | `~/.aws/amazonq/mcp.json` | JSON | No |
+| Cline | `globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` | JSON | No |
+| Roo Code | `globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json` | JSON | No |
+
+**Note:** VS Code uses `mcp.servers` (dot-separated key path) instead of `mcpServers`. Zed uses `context_servers`. Some clients require a `"type": "stdio"` field in server entries. Codex CLI uses TOML format instead of JSON. Cline and Roo Code store configs in VS Code's `globalStorage` directory.
 
 ## Tech Stack
 
@@ -476,6 +486,7 @@ Core logic is organized into four layers: data model, operations, sync engine, a
 3. **Idempotent** — running `mcpoyle sync` twice produces the same result.
 4. **No daemon** — runs on demand, no file watching, no background process.
 5. **Dry-run support** — `mcpoyle sync --dry-run` shows what would change without writing.
+6. **Config backup** — before writing to any client's config file for the first time, mcpoyle creates a `.mcpoyle-backup` copy alongside the original. Subsequent writes do not overwrite the backup.
 
 ## Future
 
@@ -485,6 +496,7 @@ Core logic is organized into four layers: data model, operations, sync engine, a
 
 ## Changelog
 
+- **0.10.0** — Expand supported clients from 8 to 15 (add Gemini CLI, Codex CLI, Copilot CLI/JetBrains, Amazon Q, Cline, Roo Code). Add config backup before first sync. Add token cost estimates to registry show. Note MCP Scoreboard as future registry source.
 - **0.9.0** — Integrate MCP server registries (Official MCP Registry + Glama). Search, show, and install servers from public registries with automatic config translation (npm→npx, pypi→uvx). Add httpx dependency. Note SkillsGate as future integration.
 - **0.8.0** — Shift TUI from 5-panel simultaneous layout to 4-tab interface: Servers & Plugins (combined), Groups, Clients, Marketplaces
 - **0.7.0** — Document path rules feature; fix CLI Surface to include rules, scope, tui, reference commands; correct plugin install/uninstall flow description

@@ -10,6 +10,16 @@ from pathlib import Path
 from mcpoyle.config import Server
 
 MCPOYLE_MARKER = "__mcpoyle"
+BACKUP_SUFFIX = ".mcpoyle-backup"
+
+
+def _backup_config(path: Path) -> None:
+    """Create a one-time backup of a config file before mcpoyle's first write."""
+    if not path.exists():
+        return
+    backup_path = path.with_name(path.name + BACKUP_SUFFIX)
+    if not backup_path.exists():
+        shutil.copy2(path, backup_path)
 
 
 @dataclass
@@ -106,6 +116,55 @@ _client_defs = [
         servers_key="mcpServers",
         glob_pattern=True,
     ),
+    ClientDef(
+        id="gemini-cli",
+        name="Gemini CLI",
+        config_path="~/.gemini/settings.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.gemini/settings.json"],
+    ),
+    ClientDef(
+        id="codex-cli",
+        name="Codex CLI",
+        config_path="~/.codex/config.toml",
+        servers_key="mcp_servers",
+        detect_paths=["~/.codex/config.toml"],
+    ),
+    ClientDef(
+        id="copilot-cli",
+        name="Copilot CLI",
+        config_path="~/.copilot/mcp-config.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.copilot/mcp-config.json"],
+    ),
+    ClientDef(
+        id="copilot-jetbrains",
+        name="Copilot JetBrains",
+        config_path="~/.config/github-copilot/mcp.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.config/github-copilot/mcp.json"],
+    ),
+    ClientDef(
+        id="amazon-q",
+        name="Amazon Q",
+        config_path="~/.aws/amazonq/mcp.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.aws/amazonq/mcp.json"],
+    ),
+    ClientDef(
+        id="cline",
+        name="Cline",
+        config_path="~/.vscode/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.vscode/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"],
+    ),
+    ClientDef(
+        id="roo-code",
+        name="Roo Code",
+        config_path="~/.vscode/globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json",
+        servers_key="mcpServers",
+        detect_paths=["~/.vscode/globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json"],
+    ),
 ]
 
 for _c in _client_defs:
@@ -151,8 +210,7 @@ def get_unmanaged_servers(config: dict, servers_key: str) -> dict:
 
 def write_client_config(path: Path, config: dict, servers_key: str, new_servers: dict) -> None:
     """Write merged servers into a client config file, backing up first."""
-    if path.exists():
-        shutil.copy2(path, path.with_suffix(path.suffix + ".bak"))
+    _backup_config(path)
 
     # Merge: keep unmanaged, replace managed with new
     existing = read_client_config(path) if path.exists() else {}
@@ -250,8 +308,7 @@ def get_unmanaged_servers_nested(config: dict, key_path: list[str]) -> dict:
 
 def write_servers_nested(path: Path, key_path: list[str], new_servers: dict) -> None:
     """Write servers to a nested key path within a JSON config file."""
-    if path.exists():
-        shutil.copy2(path, path.with_suffix(path.suffix + ".bak"))
+    _backup_config(path)
 
     existing = read_client_config(path) if path.exists() else {}
     unmanaged = get_unmanaged_servers_nested(existing, key_path)
@@ -276,11 +333,7 @@ def read_cc_settings() -> dict:
 
 def write_cc_settings(settings: dict) -> None:
     """Write Claude Code's settings.json, backing up first."""
-    if CLAUDE_CODE_SETTINGS_PATH.exists():
-        shutil.copy2(
-            CLAUDE_CODE_SETTINGS_PATH,
-            CLAUDE_CODE_SETTINGS_PATH.with_suffix(".json.bak"),
-        )
+    _backup_config(CLAUDE_CODE_SETTINGS_PATH)
     CLAUDE_CODE_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
     CLAUDE_CODE_SETTINGS_PATH.write_text(json.dumps(settings, indent=2) + "\n")
 
@@ -320,8 +373,7 @@ def write_project_settings(project_path: str, settings: dict, local: bool = Fals
     p = Path(project_path).expanduser().resolve()
     fname = "settings.local.json" if local else "settings.json"
     path = p / ".claude" / fname
-    if path.exists():
-        shutil.copy2(path, path.with_suffix(".json.bak"))
+    _backup_config(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(settings, indent=2) + "\n")
 

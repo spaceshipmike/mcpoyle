@@ -36,10 +36,19 @@ class ServerDetail:
     homepage: str = ""
     env_vars: list[EnvVarSpec] = field(default_factory=list)
     tools: list[str] = field(default_factory=list)
+    tools_raw_chars: int = 0  # total chars of tool name+description+schema text
     # For install: the package info
     registry_type: str = ""  # "npm", "pypi", "oci"
     package_identifier: str = ""
     package_args: list[str] = field(default_factory=list)
+
+    @property
+    def estimated_token_cost(self) -> int:
+        """Estimate context window tokens for tool definitions (~4 chars/token)."""
+        if self.tools_raw_chars > 0:
+            return self.tools_raw_chars // 4
+        # Fallback: estimate from tool count (avg ~200 tokens per tool)
+        return len(self.tools) * 200 if self.tools else 0
 
 
 @dataclass
@@ -150,9 +159,12 @@ def get_official(server_id: str) -> ServerDetail | None:
                 ))
 
     # Tools
+    tools_raw_chars = 0
     for tool in match.get("tools", []):
         if isinstance(tool, dict):
             tools.append(tool.get("name", ""))
+            # Accumulate chars for token cost estimate
+            tools_raw_chars += len(str(tool))
 
     return ServerDetail(
         name=name,
@@ -162,6 +174,7 @@ def get_official(server_id: str) -> ServerDetail | None:
         homepage=homepage,
         env_vars=env_vars,
         tools=tools,
+        tools_raw_chars=tools_raw_chars,
         registry_type=registry_type,
         package_identifier=package_id,
         package_args=package_args,
@@ -255,9 +268,11 @@ def get_glama(server_id: str) -> ServerDetail | None:
 
     # Tools
     tools: list[str] = []
+    tools_raw_chars = 0
     for tool in s.get("tools", []):
         if isinstance(tool, dict):
             tools.append(tool.get("name", ""))
+            tools_raw_chars += len(str(tool))
 
     return ServerDetail(
         name=qualified,
@@ -267,6 +282,7 @@ def get_glama(server_id: str) -> ServerDetail | None:
         homepage=homepage,
         env_vars=env_vars,
         tools=tools,
+        tools_raw_chars=tools_raw_chars,
     )
 
 

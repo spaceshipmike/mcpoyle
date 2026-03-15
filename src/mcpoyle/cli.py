@@ -495,6 +495,12 @@ def registry_show(server_id: str) -> None:
         click.echo(f"Tools:       {', '.join(detail.tools[:10])}")
         if len(detail.tools) > 10:
             click.echo(f"             ... and {len(detail.tools) - 10} more")
+    if detail.estimated_token_cost > 0:
+        cost = detail.estimated_token_cost
+        if cost >= 1000:
+            click.echo(f"Token cost:  ~{cost // 1000}K tokens (tool definitions)")
+        else:
+            click.echo(f"Token cost:  ~{cost} tokens (tool definitions)")
 
 
 @registry_group.command("add")
