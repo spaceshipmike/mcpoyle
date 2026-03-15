@@ -23,7 +23,7 @@ def _make_test_config() -> McpoyleConfig:
             Plugin(name="clangd-lsp", marketplace="claude-plugins-official", enabled=True),
         ],
         marketplaces=[
-            Marketplace(name="homelab", source=MarketplaceSource(source="directory", path="/tmp/mkt")),
+            Marketplace(name="my-plugins", source=MarketplaceSource(source="directory", path="/tmp/mkt")),
         ],
         groups=[
             Group(name="dev-tools", description="Dev servers", servers=["ctx"], plugins=["clangd-lsp"]),

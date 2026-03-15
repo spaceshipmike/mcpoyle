@@ -40,10 +40,10 @@ def test_plugin_qualified_name():
 
 def test_marketplace_from_dict():
     m = Marketplace.from_dict({
-        "name": "homelab",
+        "name": "my-plugins",
         "source": {"source": "directory", "path": "/local/dir"},
     })
-    assert m.name == "homelab"
+    assert m.name == "my-plugins"
     assert m.source.source == "directory"
     assert m.source.path == "/local/dir"
 
@@ -76,7 +76,7 @@ def test_config_with_plugins_round_trip():
         servers=[Server(name="ctx", command="npx")],
         groups=[Group(name="dev", servers=["ctx"], plugins=["clangd-lsp"])],
         plugins=[Plugin(name="clangd-lsp", marketplace="official", enabled=True, managed=True)],
-        marketplaces=[Marketplace(name="homelab", source=MarketplaceSource(source="directory", path="/local"))],
+        marketplaces=[Marketplace(name="my-plugins", source=MarketplaceSource(source="directory", path="/local"))],
         settings=Settings(adopt_unmanaged_plugins=True),
     )
     d = cfg.to_dict()
@@ -86,7 +86,7 @@ def test_config_with_plugins_round_trip():
     assert cfg2.plugins[0].name == "clangd-lsp"
     assert cfg2.plugins[0].marketplace == "official"
     assert len(cfg2.marketplaces) == 1
-    assert cfg2.marketplaces[0].name == "homelab"
+    assert cfg2.marketplaces[0].name == "my-plugins"
     assert cfg2.marketplaces[0].source.path == "/local"
     assert cfg2.settings.adopt_unmanaged_plugins is True
     assert cfg2.groups[0].plugins == ["clangd-lsp"]
@@ -120,9 +120,9 @@ def test_get_plugin():
 
 def test_get_marketplace():
     cfg = McpoyleConfig(
-        marketplaces=[Marketplace(name="homelab", source=MarketplaceSource(source="directory", path="/x"))]
+        marketplaces=[Marketplace(name="my-plugins", source=MarketplaceSource(source="directory", path="/x"))]
     )
-    assert cfg.get_marketplace("homelab") is not None
+    assert cfg.get_marketplace("my-plugins") is not None
     assert cfg.get_marketplace("nonexistent") is None
 
 
@@ -216,6 +216,6 @@ def test_extra_marketplaces_helpers():
     settings = {}
     assert get_extra_marketplaces(settings) == {}
 
-    set_extra_marketplaces(settings, {"homelab": {"source": {"source": "directory", "path": "/x"}}})
-    assert "homelab" in settings["extraKnownMarketplaces"]
-    assert get_extra_marketplaces(settings)["homelab"]["source"]["source"] == "directory"
+    set_extra_marketplaces(settings, {"my-plugins": {"source": {"source": "directory", "path": "/x"}}})
+    assert "my-plugins" in settings["extraKnownMarketplaces"]
+    assert get_extra_marketplaces(settings)["my-plugins"]["source"]["source"] == "directory"

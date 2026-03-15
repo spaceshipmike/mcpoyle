@@ -253,7 +253,7 @@ Install a plugin from a known marketplace.
 
 ```
 mcpoyle plugins install clangd-lsp
-mcpoyle plugins install my-plugin --marketplace homelab
+mcpoyle plugins install my-plugin --marketplace my-plugins
 ```
 
 Writes to Claude Code:

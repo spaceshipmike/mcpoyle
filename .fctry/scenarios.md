@@ -22,11 +22,11 @@
 **so that** I can install plugins from GitHub repos or local directories.
 
 ### Satisfaction criteria
-- `mcpoyle marketplaces add homelab --path /local/dir` registers in mcpoyle config AND writes to `extraKnownMarketplaces` in `~/.claude/settings.json`
+- `mcpoyle marketplaces add my-plugins --path /local/dir` registers in mcpoyle config AND writes to `extraKnownMarketplaces` in `~/.claude/settings.json`
 - `mcpoyle marketplaces add my-plugins --repo myorg/claude-plugins` registers a GitHub marketplace
 - `mcpoyle marketplaces list` shows all marketplaces with source type
-- `mcpoyle marketplaces show homelab` shows details and available plugins
-- `mcpoyle marketplaces remove homelab` removes from both mcpoyle config and `extraKnownMarketplaces`
+- `mcpoyle marketplaces show my-plugins` shows details and available plugins
+- `mcpoyle marketplaces remove my-plugins` removes from both mcpoyle config and `extraKnownMarketplaces`
 - Reserved marketplace names (`claude-plugins-official`, etc.) are rejected on add
 
 ## S3: Groups with Plugins
