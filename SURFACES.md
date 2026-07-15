@@ -9,20 +9,26 @@ cross-cutting edge without looking like they do.
 
 | Surface | Lives in | A change ripples here when you… | Verify |
 |---|---|---|---|
-| <!-- prompt: name one surface (web app, REST API, CLI, MCP server, extension, marketing site, etc.) --> | <!-- code path or repo --> | <!-- trigger condition --> | <!-- how to verify it still works --> |
-
-<!-- prompt: add one row per surface. See knowmarks/SURFACES.md for the proven shape of
-     a populated map. -->
+| Schemas and config | `src/schemas.ts`, `src/config.ts` | change a resource shape, default, validation rule, or persisted config field | Run typecheck and schema/config round-trip tests, including a consumer import fixture |
+| Operations and lifecycle | `src/operations.ts`, `src/lifecycle.ts` | add or rename a mutation, noun, result shape, or ownership rule | Run pure-operation tests and confirm no I/O entered the operations layer |
+| Sync, snapshots, and settings | `src/sync.ts`, `src/snapshots.ts`, `src/hooks.ts`, `src/settings.ts`, `src/managed-settings.ts` | change target writes, markers, merge behavior, rollback, or managed ownership | Run mixed managed/unmanaged fixtures twice plus atomic-write and rollback failure tests |
+| CLI | `src/cli/` | change operations, lifecycle verbs, browse semantics, output, or error envelopes | Run CLI tests and exercise representative commands against a temporary config home |
+| Desktop app | `packages/desktop/` | change library APIs, IPC routers, serialized types, browse results, or mutation behavior | Run desktop typecheck/unit tests and targeted Playwright flows |
+| Discovery and registries | `src/browse.ts`, `src/discovery/`, `src/registry.ts`, `src/projects.ts`, `src/setlist.ts` | change search, marketplace filters, optional adapters, or project reads | Compare library/CLI/desktop results and test missing optional dependencies |
+| Public package surface | `src/index.ts`, `package.json`, generated types | add, remove, or rename an export consumed by another app | Build the package, typecheck a consumer fixture, and sweep controlled consumers such as Chorus |
 
 ## Cross-cutting edges (the silent ones)
 
-<!-- prompt: each bullet names ONE non-obvious cross-surface dependency — the kind a
-     reasonable change would silently break. Concrete: file → file, surface → surface,
-     contract → consumers. -->
-
-- <!-- example bullet — replace -->
+- A schema change ripples into config persistence, operations types, CLI parsing,
+  desktop IPC serialization, package exports, and downstream consumers.
+- A mutation-verb change must land across operations, lifecycle dispatch, CLI, desktop,
+  tests, exports, and Chorus in one coordination window.
+- `browse.ts` is shared by the CLI and desktop Registry; search or filter drift in either
+  adapter means the two products no longer describe the same library.
 
 ## The sweep
 
-<!-- prompt: a short checklist of "did you check X, Y, Z" — the things that catch the
-     dangerous changes. The thing you read before merging. -->
+- Did `npm test`, typecheck, and the relevant desktop checks pass?
+- Did managed/unmanaged sync fixtures and rollback behavior remain intact?
+- Did CLI, desktop IPC, package exports, and controlled consumers receive API changes?
+- Did optional integrations still degrade cleanly when absent?
