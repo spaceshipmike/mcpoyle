@@ -1,0 +1,3 @@
+# Migration verification
+
+Cycle 0 migrated this project from the legacy spec-driven fctry workflow to the prototype-driven model. The live project guidance now points to the product and agent-model files, the previous spec-era material—including the pre-migration working changes—is preserved under `.fctry/legacy-spec-era/`, and the surface map covers 7 active areas. `/fctry:doctor` passed all applicable checks: 4 universal checks and 12 portable checks passed, while 10 fctry-internal checks were correctly skipped because this is not the fctry repository. The next workflow step is `/fctry:close` when a real product cycle is ready to close.
