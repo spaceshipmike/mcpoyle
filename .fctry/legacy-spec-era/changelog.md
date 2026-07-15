@@ -1,3 +1,81 @@
+## 2026-04-19 — /fctry:review spec-side reconciliations (spec v2.4.1 → v2.4.2)
+
+Trigger: `/fctry:review`. State Owner identified 12 drift items across the
+spec; this entry records the six **spec rewrites** the user approved.
+Decisions Needed counts: 5 boundary (all approved as spec rewrites),
+0 guardrail, 0 experience, 7 ready-to-build (5 of which became these spec
+rewrites; 2 code fixes — `package.json` exports and the `snapshots
+list|show` Commander subcommand — were deferred to `/fctry:execute` and
+deliberately not touched here). The user committed to keeping all six
+v2.0.4 / v2.0.5 hardening items in scope and asked for a Convergence
+Strategy that records dependency-ordered build order; the Migration
+step 4–5 tail also stays in scope.
+
+### Edits applied
+
+- `#library-api` (§Library API, ~L411): [modified] Softened the v1.3 install-state
+  verb deletion claim. The eight verbs (`enableServer` / `disableServer`
+  / `installPlugin` / `uninstallPlugin` / `enablePlugin` / `disablePlugin`
+  / `installSkill` / `uninstallSkill`) are now described as "scheduled
+  for deletion in step 4 of the v1.3 → v2.0.1 Migration" rather than
+  "deleted outright" — bringing this section into agreement with the
+  honest status block at `#modules-targets`.
+- `#modules-built` (§Modules (built)) and `#modules-targets`
+  (§Modules (v2.0.1 targets)): [modified] Reclassified `import-legacy.ts`
+  from "unbuilt v2.0.1 target" to a built module (with "scheduled for
+  retirement after Migration step 4 verification" note). The directory
+  tree pointer at the bottom of `#architecture` was updated in lockstep.
+  The §Modules (v2.0.1 targets) sub-section now declares "no remaining
+  target modules" with a status paragraph documenting that what is
+  pending is Migration steps 4–5, not unbuilt module rows.
+- `#supported-clients` (§Supported Clients, L2035): [structural] Split the
+  21-row table into **Supported (17)** and **Planned (4)**. The 17 are
+  what `src/clients.ts` actually defines today; the 4 (Antigravity,
+  CodeBuddy, Qoder, Trae) carry an "expected config path" qualifier and
+  an explicit "detection plus path adapters not yet implemented" note.
+  Three callers of "21 detected clients" prose in `#scope-sequencing`,
+  `#core-concepts`, and `#references` were updated to "17 supported,
+  4 more planned" to match.
+- All `##` headings: [structural] Added stable kebab-case `{#alias}` IDs to
+  every major `##` heading and a handful of load-bearing `###` headings
+  (`#modules-built`, `#modules-targets`, `#package-exports`,
+  `#operations`, `#schemas`, `#migration-build-order`,
+  `#convergence-strategy`). Aliases match the natural names that scoped
+  commands resolve. No content moved; this is a pure addressability
+  refit so future `/fctry:evolve <alias>` invocations have stable
+  anchors.
+- `synopsis.tech-stack` (frontmatter): [modified] Added `electron-trpc`,
+  `@trpc/server`, `@trpc/client`, `@trpc/react-query`,
+  `@tanstack/react-query`, `superjson`, `zustand`, `@radix-ui/*`,
+  `@phosphor-icons/react` to the array. These are pinned in `CLAUDE.md`
+  and live in `packages/desktop/package.json`; their absence from the
+  synopsis was understating the desktop surface for portfolio
+  cataloging.
+- `#convergence-strategy` (new sub-section under §Modules (v2.0.1
+  targets)): [added] Documents the v2.0.5 hardening release scope and
+  the dependency-ordered build sequence — atomic-write → snapshot tags
+  + forward-restore → per-client sync mode table → typed variables →
+  profile composability + redactForExport → doctor v2.0.5 capability
+  checks. Records that all six items are committed and that this is a
+  build order, not a calendar.
+
+### Spec version
+
+Bumped `2.4.1` → `2.4.2` (patch — clarifications and reclassifications,
+no new behavior). `date` updated to `2026-04-19`.
+
+### Deferred (not touched)
+
+- `package.json` exports — code fix queued for `/fctry:execute`.
+- `snapshots list|show` Commander subcommand — code fix queued for
+  `/fctry:execute`.
+- All six v2.0.5 hardening features — only scope and order were
+  documented; no code written.
+
+(6 modified, 2 added, 0 removed)
+
+---
+
 ## 2026-04-18 — /fctry:review drift resolution (spec v2.4.1)
 
 Full-spec `/fctry:review` pass. Promoted three built modules into §Modules
