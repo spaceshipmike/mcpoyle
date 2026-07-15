@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "/Users/mike/.local/bin/serena",
+      "args": [
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project",
+        "/Users/mike/Code/ensemble",
+        "--open-web-dashboard",
+        "False"
+      ]
+    },
+    "ck": {
+      "command": "/Users/mike/.cargo/bin/ck",
+      "args": [
+        "--serve"
+      ]
+    },
+    "repowise": {
+      "command": "/Users/mike/.local/bin/repowise",
+      "args": [
+        "mcp",
+        "/Users/mike/Code/ensemble",
+        "--transport",
+        "stdio"
+      ],
+      "description": "repowise: codebase intelligence — map/ratchet + blast-radius + nav (Py+TS). NEVER run `repowise init` (rewrites global config); refresh with `update`."
+    }
+  }
+}
