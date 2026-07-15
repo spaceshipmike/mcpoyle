@@ -2,7 +2,7 @@
 
 ## Project
 
-Ensemble — Library, CLI, TUI, and desktop app for centrally managing Claude Code extension artifacts across 17 AI clients (21 planned in v2.0.1 spec). Today the library manages MCP servers, skills, plugins, hooks, settings, and rollback snapshots; subagents (`agents.ts`), slash commands (`commands.ts`), and the TUI browse engine (`browse.ts`) remain v2.0.1 targets. Library-first: designed to be consumed by apps (like Chorus) as a dependency. The Electron desktop app provides visual management with full CLI parity; `ensemble browse` provides a TUI-grade discovery experience.
+Ensemble — Library, CLI, TUI, and desktop app for centrally managing Claude Code extension artifacts across 17 AI clients. The library manages MCP servers, skills, plugins, hooks, settings, rollback snapshots, subagents, slash commands, and local discovery. Library-first: designed to be consumed by apps (like Chorus) as a dependency. The Electron desktop app provides visual management with full CLI parity; `ensemble browse` provides a TUI-grade discovery experience.
 
 ## Tech Stack
 
@@ -54,7 +54,8 @@ Desktop IPC (chunk 10) now exposes `agents`, `commands`, `hooks`, and `settings`
 | `index.ts` | Public API barrel export |
 | `packages/desktop/` | Electron desktop app — React + Tailwind over library via IPC |
 
-**v2.0.1 targets:** See `.fctry/spec.md` §Architecture → Modules (v2.0.1 targets) for remaining unbuilt modules (`browse.ts`, `import-legacy.ts`).
+Future product targets belong in issues or temporary notes under `designs/`;
+the running library and tests are the source of truth for what is built.
 
 ## Package Exports
 
@@ -70,5 +71,58 @@ import { syncClient } from 'ensemble/sync';
 2. **Run tests before committing.** All tests must pass: `npm test`
 3. **Additive sync only.** Never delete servers, plugins, skills, agents, commands, hooks, or managed settings keys the user didn't create via Ensemble. The `__ensemble` marker (or `ensemble: managed` frontmatter on markdown resources) identifies managed entries.
 4. **Secrets stay in 1Password.** Env values may contain `op://` references — store them as-is, never resolve.
-5. **Always update docs with functionality changes.** Update `COMMANDS.md` and `.fctry/changelog.md`.
+5. **Always update docs with functionality changes.** Update `COMMANDS.md` and the relevant agent-model or product documentation.
 6. **Type check.** `npx tsc --noEmit` must pass.
+
+## Agent-Model & the prototype-driven loop
+
+<!-- inserted by fctry init-agent-model -->
+
+This project follows fctry's prototype-driven methodology. The running product
+is the source of truth for behavior; the files below preserve the constraints
+and learning that must travel across sessions and runtimes.
+
+The agent-model files:
+
+- **`INVARIANTS.md`** — what must stay true (ENFORCED vs PROSE)
+- **`SURFACES.md`** — the cross-surface ripple map
+- **`MODEL_DECISIONS.md`** — decisions, reasons, and revisit triggers
+- **`.fctry/lessons.md`** — running learnings
+
+Forward-looking design lives in `designs/<slug>.md`, using
+`designs/_template.md`. A design note is temporary: distill accepted decisions
+into the agent model and issues, then archive it under `designs/_archived/`.
+
+The loop is: *experience → issue → Diagnose → Scope → Build in a task-owned
+worktree → local checks → CI → independent review → `/close`*. Final merging
+remains operator-authorized.
+
+Use the runtime-neutral core for deterministic behavior:
+
+```text
+fctry host capabilities --json
+fctry project mode --json
+fctry close inspect --json
+fctry phase validate <packet.json> --json
+fctry task create|claim|renew|complete|review
+fctry message send|ack|reject
+fctry recover --json
+```
+
+Shared primitives are resolved from `FCTRY_PLUGIN_ROOT`. Runtime adapters may
+populate compatibility aliases, but project instructions and custom scripts
+must not require a Claude- or Codex-specific plugin-root variable.
+
+Session state is namespaced under `.fctry/sessions/`. Do not hand-edit shared
+state or another session's record. Write-capable tasks declare scope and use a
+task-owned worktree and branch; overlapping active scopes are rejected.
+
+For substantive user-facing reports, apply the shared `operator-comms` skill:
+plain language must preserve the outcome, material detail, practical
+consequences, uncertainty, recommendation, and next decision.
+
+Sentinels:
+
+- `.fctry/no-session-handoff` — use the host's canonical handoff only
+- `.fctry/substrate-tier` — substrate sizing
+- `.fctry/agent-model-init` — agent-model bootstrap date
