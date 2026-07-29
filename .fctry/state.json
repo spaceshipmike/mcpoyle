@@ -1,124 +1,13 @@
 {
-  "currentCommand": "execute",
-  "completedSteps": ["state-owner-scan", "executor-plan"],
-  "workflowStep": "executor-build",
+  "currentCommand": "review",
+  "completedSteps": [
+    "state-owner-scan",
+    "spec-writer"
+  ],
+  "digestWritten": true,
+  "specVersion": "2.4.2",
   "upgradeApplied": {
-    "from": "0.82.0",
-    "to": "0.83.0"
-  },
-  "buildRun": {
-    "status": "awaiting-user",
-    "pausedReason": "Manual gate: user must run ensemble import-legacy on their live machine before chunk 13 proceeds.",
-    "startedAt": "2026-04-18T16:00:00Z",
-    "plan": {
-      "specVersion": "2.4.1",
-      "target": "v1.3 -> v2.0.1 lifecycle migration completion",
-      "decisions": {
-        "backupFilename": "config.json.v1.3.bak",
-        "chorusCleanup": "delete-broken-imports",
-        "v13Scenarios": "delete-bodies-keep-headers",
-        "desktopStrategy": "functional-holding-pattern"
-      },
-      "chunks": [
-        {
-          "id": "11a",
-          "name": "Schemas: InstallState, PivotSpec, installState field on 7 resource schemas",
-          "status": "completed",
-          "size": "S",
-          "files": ["src/schemas.ts", "tests/schemas.test.ts"],
-          "sections": ["library-api"],
-          "startedAt": "2026-04-18T16:05:00Z",
-          "completedAt": "2026-04-18T16:45:00Z",
-          "specVersionAtBuild": "2.4.1"
-        },
-        {
-          "id": "11b",
-          "name": "New library + install operations (side-by-side with v1.3)",
-          "status": "completed",
-          "size": "M",
-          "files": ["src/operations.ts", "tests/operations.test.ts", "src/clients.ts"],
-          "sections": ["library-api"],
-          "dependsOn": ["11a"],
-          "startedAt": "2026-04-18T16:46:00Z",
-          "completedAt": "2026-04-18T16:50:00Z",
-          "specVersionAtBuild": "2.4.1"
-        },
-        {
-          "id": "11c",
-          "name": "sync.ts read path for installState (fallback to enabled)",
-          "status": "completed",
-          "size": "M",
-          "files": ["src/sync.ts", "src/config.ts", "tests/sync.test.ts"],
-          "sections": ["sync"],
-          "dependsOn": ["11a", "11b"],
-          "startedAt": "2026-04-18T16:51:00Z",
-          "completedAt": "2026-04-18T16:52:00Z",
-          "specVersionAtBuild": "2.4.1"
-        },
-        {
-          "id": "12",
-          "name": "import-legacy.ts + ensemble import-legacy CLI subcommand",
-          "status": "completed",
-          "size": "L",
-          "files": ["src/import-legacy.ts", "src/cli/index.ts", "tests/import-legacy.test.ts", ".fctry/spec.md"],
-          "sections": ["migration"],
-          "dependsOn": ["11a", "11b", "11c"],
-          "startedAt": "2026-04-18T16:52:30Z",
-          "completedAt": "2026-04-18T16:58:00Z",
-          "specVersionAtBuild": "2.4.1"
-        },
-        {
-          "id": "MANUAL",
-          "name": "User runs ensemble import-legacy, inspects, confirms",
-          "status": "awaiting-user",
-          "size": "GATE",
-          "dependsOn": ["12"],
-          "awaitingUserAt": "2026-04-18T16:58:30Z"
-        },
-        {
-          "id": "13",
-          "name": "Coordinated v1.3-verb rename sweep (atomic)",
-          "status": "planned",
-          "size": "XL",
-          "files": [
-            "src/operations.ts",
-            "src/index.ts",
-            "src/cli/index.ts",
-            "src/lifecycle.ts",
-            "src/clients.ts",
-            "packages/desktop/src/main/ipc/router.ts",
-            "packages/desktop/src/main/ipc/router.test.ts",
-            "tests/operations.test.ts",
-            "tests/discover.test.ts",
-            "tests/re-import-preservation.test.ts",
-            "tests/sync.test.ts",
-            "tests/export.test.ts",
-            "tests/doctor.test.ts",
-            "tests/search.test.ts",
-            ".fctry/spec.md",
-            ".fctry/scenarios.md",
-            "../chorus-app/src/main/services/ensemble-config.ts"
-          ],
-          "sections": ["migration", "cli-surface", "library-api"],
-          "dependsOn": ["MANUAL"]
-        },
-        {
-          "id": "14",
-          "name": "Delete import-legacy.ts and its CLI subcommand",
-          "status": "planned",
-          "size": "XS",
-          "files": ["src/import-legacy.ts", "src/cli/index.ts"],
-          "sections": ["migration"],
-          "dependsOn": ["13"]
-        }
-      ]
-    },
-    "chunkProgress": {
-      "total": 7,
-      "completed": 4,
-      "failed": 0,
-      "awaitingUser": 1
-    },
-    "lastCheckpoint": "2026-04-18T16:58:30Z"
+    "from": "0.83.6",
+    "to": "0.85.3"
   }
 }

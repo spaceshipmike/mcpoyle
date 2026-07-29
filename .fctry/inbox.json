@@ -1,5 +1,31 @@
 [
   {
+    "id": "inbox-1775363363658-hrgzi4",
+    "type": "reference",
+    "content": "https://github.com/polyxmedia/claude-hud-lcars",
+    "timestamp": "2026-04-05T04:29:23.659Z",
+    "status": "incorporated",
+    "consumedBy": "/fctry:evolve 2026-04-12",
+    "analysis": {
+      "title": "GitHub - polyxmedia/claude-hud-lcars: LCARS operations dashboard for Claude Code. See everything you&#39;ve built, drill into the details. npx claude-hud-lcars \u00b7 GitHub",
+      "excerpt": "GitHub - polyxmedia/claude-hud-lcars: LCARS operations dashboard for Claude Code. See everything you&#39;ve built, drill into the details. npx claude-hud-lcars \u00b7 GitHub Skip to content Navigation Menu Toggle navigation Sign in Appearance settings Platform AI CODE CREATION GitHub Copilot Write better code with AI GitHub Spark Build and deploy intelligent apps GitHub Models Manage and compare prompts MCP Registry New Integrate external tools DEVELOPER WORKFLOWS Actions Automate any workflow Codespaces Instant dev environments Issues Plan and track work Code Review Manage code changes APPLICATION SECURITY GitHub Advanced Security Find and fix vulnerabilities Code security Secure your code as you build Secret protection Stop leaks before they start EXPLORE Why GitHub Documentation Blog Changelog Marketplace View all features Solutions BY COMPANY SIZE Enterprises Small and medium teams Startups Nonprofits BY USE CASE App Modernization DevSecOps DevOps CI/CD View all use cases BY INDUSTRY Healthcare Financial services Manufacturing Government View all industries View all solutions Resources EXPLORE BY TOPIC AI Software Development DevOps Security View all topics EXPLORE BY TYPE Customer stories Events &amp; webinars Ebooks &amp; reports Business insights GitHub Skills SUPPORT &amp; SERVICES Documentation Customer support Community forum Trust center Partners View all resources Open Source COMMUNITY GitHub Sponsors Fund open source developers PROGRAMS Security Lab Maintainer Community Accelerator GitHub Stars Archive Program REPOSITORIES Topics Trending Collections Enterprise ENTERPRISE SOLUTIONS Enterprise platform AI-powered developer platform AVAILABLE ADD-ONS GitHub Advanced Security Enterprise-grade security features Copilot for Business Enterprise-grade AI features Premium Support Enterprise-grade 24/7 support Pricing Search or jump to... Search code, repositories, users, issues, pull requests... --> Search Clear Search syntax tips Provide feedback --> We read every ",
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
+    }
+  },
+  {
+    "id": "inbox-1775363157085-w4mvc9",
+    "type": "reference",
+    "content": "https://github.com/mcpware/claude-code-organizer",
+    "timestamp": "2026-04-05T04:25:57.085Z",
+    "status": "incorporated",
+    "consumedBy": "/fctry:evolve 2026-04-12",
+    "analysis": {
+      "title": "GitHub - mcpware/claude-code-organizer: Dashboard to manage Claude Code memories, configs, and MCP servers \u2014 security scanner for tool poisoning, context token budget tracker, duplicate cleanup, scope management. npx @mcpware/claude-code-organizer \u00b7 GitHub",
+      "excerpt": "GitHub - mcpware/claude-code-organizer: Dashboard to manage Claude Code memories, configs, and MCP servers \u2014 security scanner for tool poisoning, context token budget tracker, duplicate cleanup, scope management. npx @mcpware/claude-code-organizer \u00b7 GitHub Skip to content Navigation Menu Toggle navigation Sign in Appearance settings Platform AI CODE CREATION GitHub Copilot Write better code with AI GitHub Spark Build and deploy intelligent apps GitHub Models Manage and compare prompts MCP Registry New Integrate external tools DEVELOPER WORKFLOWS Actions Automate any workflow Codespaces Instant dev environments Issues Plan and track work Code Review Manage code changes APPLICATION SECURITY GitHub Advanced Security Find and fix vulnerabilities Code security Secure your code as you build Secret protection Stop leaks before they start EXPLORE Why GitHub Documentation Blog Changelog Marketplace View all features Solutions BY COMPANY SIZE Enterprises Small and medium teams Startups Nonprofits BY USE CASE App Modernization DevSecOps DevOps CI/CD View all use cases BY INDUSTRY Healthcare Financial services Manufacturing Government View all industries View all solutions Resources EXPLORE BY TOPIC AI Software Development DevOps Security View all topics EXPLORE BY TYPE Customer stories Events &amp; webinars Ebooks &amp; reports Business insights GitHub Skills SUPPORT &amp; SERVICES Documentation Customer support Community forum Trust center Partners View all resources Open Source COMMUNITY GitHub Sponsors Fund open source developers PROGRAMS Security Lab Maintainer Community Accelerator GitHub Stars Archive Program REPOSITORIES Topics Trending Collections Enterprise ENTERPRISE SOLUTIONS Enterprise platform AI-powered developer platform AVAILABLE ADD-ONS GitHub Advanced Security Enterprise-grade security features Copilot for Business Enterprise-grade AI features Premium Support Enterprise-grade 24/7 support Pricing Search or jump to... Search code, repositories, users, issues, ",
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
+    }
+  },
+  {
     "id": "inbox-1774888880069-vb8tcb",
     "type": "reference",
     "content": "https://github.com/smith-horn/skillsmith",
@@ -71,7 +97,7 @@
     "timestamp": "2026-03-30T16:38:47.472Z",
     "status": "incorporated",
     "analysis": {
-      "title": "GitHub - skillsgate/skillsgate: npm for AI skills — 80K+ skills catalog with semantic search and security scanning",
+      "title": "GitHub - skillsgate/skillsgate: npm for AI skills \u2014 80K+ skills catalog with semantic search and security scanning",
       "excerpt": "Desktop app, TUI, and CLI for discovering/installing skills across 18 AI agents. Canonical copy + symlink distribution, lock file, multi-source parser, content-hash sync, security scanning.",
       "summary": "6 patterns extracted: canonical copy + symlink distribution, lock file for state tracking, multi-source parser with typed resolution, content-hash change detection, security scanning before install, agent-selective removal."
     },
@@ -112,7 +138,7 @@
     "analysis": {
       "title": "GitHub - Klavis-AI/klavis: Klavis AI:  MCP integration platforms that let AI agents use tools reliably at any scale",
       "excerpt": "MCP integration platform for scaling AI agent tool use.",
-      "summary": "Reference fetched — ready for /fctry:ref"
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
     },
     "consumedBy": "/fctry:ref 2026-03-28"
   },
@@ -125,7 +151,7 @@
     "analysis": {
       "title": "GitHub - lydakis/mcpx: Turn MCP servers into composable CLIs",
       "excerpt": "Composable CLI wrapper for MCP servers.",
-      "summary": "Reference fetched — ready for /fctry:ref"
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
     },
     "consumedBy": "/fctry:ref 2026-03-28"
   },
@@ -138,7 +164,7 @@
     "analysis": {
       "title": "GitHub - different-ai/openwork: An open-source alternative to Claude Cowork built for teams, powered by opencode",
       "excerpt": "Team collaboration tool for AI coding agents.",
-      "summary": "Reference fetched — ready for /fctry:ref"
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
     }
   },
   {
@@ -150,7 +176,7 @@
     "analysis": {
       "title": "GitHub - rowboatlabs/rowboat: Open-source AI coworker, with memory",
       "excerpt": "AI coworker platform with memory capabilities.",
-      "summary": "Reference fetched — ready for /fctry:ref"
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
     }
   },
   {
@@ -162,7 +188,67 @@
     "analysis": {
       "title": "GitHub - zeroclaw-labs/zeroclaw: Autonomous AI personal assistant infrastructure",
       "excerpt": "Cross-platform autonomous AI assistant infrastructure in Rust.",
-      "summary": "Reference fetched — ready for /fctry:ref"
+      "summary": "Reference fetched \u2014 ready for /fctry:ref"
     }
+  },
+  {
+    "id": "inbox-1777041554851-314c97",
+    "type": "reference",
+    "content": "https://github.com/chiefautism/claude-intel",
+    "timestamp": "2026-04-24T14:39:14Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17264
+  },
+  {
+    "id": "inbox-1777041554851-488bca",
+    "type": "reference",
+    "content": "https://github.com/chiefautism/warm-start",
+    "timestamp": "2026-04-24T14:39:14Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17265
+  },
+  {
+    "id": "inbox-1777309159043-f26692",
+    "type": "reference",
+    "content": "https://github.com/composiohq/awesome-codex-skills",
+    "timestamp": "2026-04-27T16:59:19Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17297
+  },
+  {
+    "id": "inbox-1777309159043-8a79d2",
+    "type": "reference",
+    "content": "https://github.com/amirshayegh/codex-claude-bridge",
+    "timestamp": "2026-04-27T16:59:19Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17299
+  },
+  {
+    "id": "inbox-1777309159043-984ff6",
+    "type": "reference",
+    "content": "https://reddit.com/r/claudecode/comments/1swcwb6",
+    "timestamp": "2026-04-27T16:59:19Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17537
+  },
+  {
+    "id": "inbox-1777309159043-f786be",
+    "type": "reference",
+    "content": "https://github.com/everyinc/charlie-cfo-skill",
+    "timestamp": "2026-04-27T16:59:19Z",
+    "status": "migrated",
+    "migratedTo": "knowmarks-space-8",
+    "migratedAt": "2026-05-07T00:00:00Z",
+    "migratedKnowmarkId": 17634
   }
 ]
